@@ -14,10 +14,10 @@ module ctrl_FSM(
 	disp_mode
 	);
 
-	input			clock;									//50M时钟信号
-	input	[7:0]	dat_out;								// 1byte键值，只做简单的按键扫描
+	input			clock;					//50M time signal
+	input	[7:0]	dat_out;					// 1byte锛宻imple input-scanning
 	input			dat_busy;
-	input			dat_ready;								//键盘当前状态，ps2_state=1表示有键被按下
+	input			dat_ready;			     //current state of the keyboard锛宲s2_state=1 -> key impressed
 	output	[9:0]	football_x;
 	output	[9:0]	football_y;
 	output	[9:0]	goal_keeper_x;
