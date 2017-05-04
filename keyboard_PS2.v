@@ -1,6 +1,5 @@
 /*******************************************************************
-Ä£¿éÃû³Æ£ºps2_keyboard
-ÊµÏÖ¹¦ÄÜ£ºPS2¼üÅÌÇý¶¯³ÌÐò
+functionï¼šps2_keyboard 
 ********************************************************************/
 module keyboard_PS2(
 	clock,
@@ -10,36 +9,36 @@ module keyboard_PS2(
 	dat_busy,
 	dat_ready);
 
-	input			clock;									//50MÊ±ÖÓÐÅºÅ
-	input			ps2_clk;								//PS2½Ó¿ÚÊ±ÖÓÐÅºÅ
-	input			ps2_dat;								//PS2½Ó¿ÚÊý¾ÝÐÅºÅ
-	output	[7:0]	dat_out;								// 1byte¼üÖµ£¬Ö»×ö¼òµ¥µÄ°´¼üÉ¨Ãè
+	input			clock;									//50M time signal
+	input			ps2_clk;								//PS2 interface time clock
+	input			ps2_dat;								//PS2 interface data clock
+	output	[7:0]	dat_out;								
 	output			dat_busy;
-	output			dat_ready;								//¼üÅÌµ±Ç°×´Ì¬£¬ps2_state=1±íÊ¾ÓÐ¼ü±»°´ÏÂ 
-	reg	[7:0] 		dat_out;								//½ÓÊÕÊý¾ÝµÄÏàÓ¦ASCIIÂë
+	output			dat_ready;								//keyboard current stateï¼Œps2_state=1 -> key pressed 
+	reg	[7:0] 		dat_out;								//receving data's ASCII code
 	reg				dat_ready;
 	//------------------------------------------
-	reg				ps2_clk_delay1=0;						//ps2k_clk×´Ì¬¼Ä´æÆ÷
+	reg				ps2_clk_delay1=0;						//ps2k_clk register
 	reg				ps2_clk_delay2=0;
 	reg				ps2_clk_delay3=0;	
-	wire			ps2_clk_neg;							// ps2k_clkÏÂ½µÑØ±êÖ¾Î»
+	wire			ps2_clk_neg;						
 	
-	always @ (posedge clock ) begin							//±ßÑØ¼ì²â							
+	always @ (posedge clock ) begin							//edge checking							
 		ps2_clk_delay1 <= ps2_clk;
 		ps2_clk_delay2 <= ps2_clk_delay1;
 		ps2_clk_delay3 <= ps2_clk_delay2;
 	end
 
-	assign ps2_clk_neg = ~ps2_clk_delay2 & ps2_clk_delay3;	//ÏÂ½µÑØ
+	assign ps2_clk_neg = ~ps2_clk_delay2 & ps2_clk_delay3;	//ä¸‹é™æ²¿
 
 	//------------------------------------------
-	reg	[7:0]	ps2_byte		=0;								//PC½ÓÊÕÀ´×ÔPS2µÄÒ»¸ö×Ö½ÚÊý¾Ý´æ´¢Æ÷
-	reg	[7:0]	temp_data		=0;								//µ±Ç°½ÓÊÕÊý¾Ý¼Ä´æÆ÷
-	reg	[3:0] 	num				=0;								//¼ÆÊý¼Ä´æÆ÷
-	reg 		ps2_state		=1;								//¼üÅÌµ±Ç°×´Ì¬£¬ps2_state_r=1±íÊ¾ÓÐ¼ü±»°´ÏÂ
+	reg	[7:0]	ps2_byte		=0;								
+	reg	[7:0]	temp_data		=0;								//current data register
+	reg	[3:0] 	num				=0;								//counter register
+	reg 		ps2_state		=1;							
 	reg			ps2_state_delay1=0;								
 	reg			ps2_state_delay2=0;
-	reg 		key_flag		=0;								//ËÉ¼ü±êÖ¾Î»£¬ÖÃ1±íÊ¾½ÓÊÕµ½Êý¾Ý8'hf0£¬ÔÙ½ÓÊÕµ½ÏÂÒ»¸öÊý¾ÝºóÇåÁã
+	reg 		key_flag		=0;					
 	
 	assign dat_busy=~key_flag;
 	
@@ -50,7 +49,7 @@ module keyboard_PS2(
 	end
 	
 	always @ (posedge clock ) begin
-		if(ps2_clk_neg) begin						//¼ì²âµ½ps2k_clkµÄÏÂ½µÑØ
+		if(ps2_clk_neg) begin						//æ£€æµ‹åˆ°ps2k_clkçš„ä¸‹é™æ²¿
 			case (num)
 				4'd0:	num <= num+1'b1;
 				4'd1:	begin
@@ -86,24 +85,24 @@ module keyboard_PS2(
 						temp_data[7] <= ps2_dat;	//bit7
 						end
 				4'd9:	begin
-						num <= num+1'b1;			//ÆæÅ¼Ð£ÑéÎ»£¬²»×ö´¦Àí
+						num <= num+1'b1;		
 						end
 				4'd10:  begin
-						num <= 4'd0;				// numÇåÁã
+						num <= 4'd0;				// num clear
 						end
 				default:;
 			endcase
 		end	
 	end 
 
-	always @ (posedge clock)begin	//½ÓÊÕÊý¾ÝµÄÏàÓ¦´¦Àí£¬ÕâÀïÖ»¶Ô1byteµÄ¼üÖµ½øÐÐ´¦Àí
-		if(num==4'd10 && ps2_clk_neg==1) begin	//¸Õ´«ËÍÍêÒ»¸ö×Ö½ÚÊý¾Ý
+	always @ (posedge clock)begin	
+		if(num==4'd10 && ps2_clk_neg==1) begin	
 			if(temp_data == 8'hf0) 
 				key_flag <= 1'b1;
 			else begin
-				if(!key_flag) begin	//ËµÃ÷ÓÐ¼ü°´ÏÂ
+				if(!key_flag) begin	
 					ps2_state <= 1'b1;
-					ps2_byte <= temp_data;	//Ëø´æµ±Ç°¼üÖµ
+					ps2_byte <= temp_data;	
 				end
 				else begin
 					ps2_state <= 1'b0;
@@ -114,7 +113,7 @@ module keyboard_PS2(
 	end
 
 	always @ (*) begin
-		case (ps2_byte)		//¼üÖµ×ª»»ÎªASCIIÂë£¬ÕâÀï×öµÄ±È½Ï¼òµ¥£¬Ö»´¦Àí×ÖÄ¸
+		case (ps2_byte)		//é”®å€¼è½¬æ¢ä¸ºASCIIç ï¼Œè¿™é‡Œåšçš„æ¯”è¾ƒç®€å•ï¼Œåªå¤„ç†å­—æ¯
 			8'h15: dat_out <= 8'h51;	//Q
 			8'h1d: dat_out <= 8'h57;	//W
 			8'h24: dat_out <= 8'h45;	//E
